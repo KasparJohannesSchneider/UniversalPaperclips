@@ -703,6 +703,9 @@ var tourneyResultsElements = [];
 
 cacheDOMElements();
 
+// Initialize Paperclip Plot
+initPaperclipPlot();
+
 // Wire --------------------------------------------------------
 
 function adjustWirePrice(){
@@ -4189,6 +4192,57 @@ if (localStorage.getItem("savePrestige") != null) {
     refresh();
 }
 
+// Paperclip Plot Variables
+var paperclipTimeData = [];
+var paperclipCountData = [];
+var plotUpdateCounter = 0;
+var plotUpdateFrequency = 10; // Update plot every 10 ticks (1 second)
+
+// Initialize Paperclip Plot
+function initPaperclipPlot() {
+    var layout = {
+        margin: { t: 10, b: 40, l: 60, r: 10 },
+        xaxis: { title: 'Time (s)' },
+        yaxis: { title: 'Paperclips' },
+        plot_bgcolor: '#f8f8f8',
+        paper_bgcolor: '#f8f8f8'
+    };
+
+    var data = [{
+        x: paperclipTimeData,
+        y: paperclipCountData,
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#3366cc', width: 2 }
+    }];
+
+    Plotly.newPlot('paperclipPlot', data, layout);
+}
+
+// Update Paperclip Plot
+function updatePaperclipPlot() {
+    plotUpdateCounter++;
+
+    if (plotUpdateCounter >= plotUpdateFrequency) {
+        plotUpdateCounter = 0;
+
+        // Add new data point
+        paperclipTimeData.push(ticks / 10); // Convert ticks to seconds
+        paperclipCountData.push(clips);
+
+        // Keep only the last 100 data points to prevent performance issues
+        if (paperclipTimeData.length > 100) {
+            paperclipTimeData.shift();
+            paperclipCountData.shift();
+        }
+
+        // Update the plot
+        Plotly.update('paperclipPlot', 
+            { x: [paperclipTimeData], y: [paperclipCountData] },
+            {}, [0]);
+    }
+}
+
 // MAIN LOOP
 var welcomeMsg = "Welcome to Universal Paperclips"; 
 var welcomeIdx = 0;
@@ -4202,7 +4256,10 @@ window.setInterval(function(){
 
     // Update clock in top right corner every 100 ms
     clockCruncher(ticks);
-    
+
+    // Update paperclip plot
+    updatePaperclipPlot();
+
     milestoneCheck();
     buttonUpdate();
 
