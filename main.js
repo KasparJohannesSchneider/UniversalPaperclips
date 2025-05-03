@@ -4202,7 +4202,7 @@ var plotUpdateFrequency = 10; // Update plot every 10 ticks (1 second)
 function initPaperclipPlot() {
     var layout = {
         margin: { t: 10, b: 40, l: 60, r: 10 },
-        xaxis: { title: 'Time (s)' },
+        xaxis: { title: 'Time (s)', range: [0, null] },
         yaxis: { title: 'Paperclips' },
         plot_bgcolor: '#f8f8f8',
         paper_bgcolor: '#f8f8f8'
@@ -4230,16 +4230,10 @@ function updatePaperclipPlot() {
         paperclipTimeData.push(ticks / 10); // Convert ticks to seconds
         paperclipCountData.push(clips);
 
-        // Keep only the last 100 data points to prevent performance issues
-        if (paperclipTimeData.length > 100) {
-            paperclipTimeData.shift();
-            paperclipCountData.shift();
-        }
-
-        // Update the plot
+        // Update the plot with fixed x-axis range to always start at 0
         Plotly.update('paperclipPlot', 
             { x: [paperclipTimeData], y: [paperclipCountData] },
-            {}, [0]);
+            { xaxis: { range: [0, Math.max(...paperclipTimeData, 10)] } }, [0]);
     }
 }
 
